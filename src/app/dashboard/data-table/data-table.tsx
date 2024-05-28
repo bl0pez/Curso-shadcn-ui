@@ -236,6 +236,25 @@ export function DataTable<TData, TValue>({
             </Button>
           </div>
         </div>
+        <Select
+          onValueChange={(value) => {
+            table.setPageSize(Number(value));
+          }}
+          value={table.getState().pagination.pageSize.toString()}
+        >
+            <SelectTrigger className="w-[180px] m-2">
+              <SelectValue placeholder="Rows per page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="40">40</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
       </div>
     </>
   );
