@@ -8,10 +8,18 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  VisibilityState,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import {
   Select,
@@ -47,6 +55,8 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [currentStatus, setCurrentStatus] = React.useState("all");
 
   const table = useReactTable({
@@ -58,23 +68,25 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
       columnFilters,
+      columnVisibility,
     },
   });
 
   return (
     <>
       <div>
-        <div className="flex items-center py-4 justify-between">
+        <div className="flex items-center py-4 gap-4">
           <Input
             placeholder="Filter emails..."
             value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
             onChange={(event) => {
-              setCurrentStatus('all')
-              table.getColumn("status")?.setFilterValue(undefined)
-              table.getColumn("email")?.setFilterValue(event.target.value)
+              setCurrentStatus("all");
+              table.getColumn("status")?.setFilterValue(undefined);
+              table.getColumn("email")?.setFilterValue(event.target.value);
             }}
             className="max-w-sm"
           />
@@ -82,10 +94,9 @@ export function DataTable<TData, TValue>({
           <Select
             value={currentStatus}
             onValueChange={(value) => {
-
-              if (value === 'all') {
+              if (value === "all") {
                 table.getColumn("status")?.setFilterValue(undefined);
-                setCurrentStatus('all');
+                setCurrentStatus("all");
                 return;
               }
 
@@ -101,14 +112,38 @@ export function DataTable<TData, TValue>({
                 <SelectLabel>Status</SelectLabel>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processing">
-                  Processing
-                </SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
                 <SelectItem value="success">Success</SelectItem>
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Columns</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.id !== "actions")
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="rounded-md border">
